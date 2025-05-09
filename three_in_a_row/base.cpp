@@ -5,10 +5,12 @@
 #include <SDL_ttf.h>
 #include<SDL_image.h>
 #include "SDL_mixer.h"
+#include "common_vars.h"
 using namespace std;
-
-extern const int SCREEN_WIDTH = 800;
-extern const int SCREEN_HEIGHT = 600;
+void FillBackground(SDL_Renderer* rend, int colorR, int colorG, int colorB, int colorA) {
+	SDL_SetRenderDrawColor(rend, colorR, colorG, colorB, colorA);
+	SDL_RenderClear(rend);
+}
 
 bool init(SDL_Window*& window, SDL_Renderer*& renderer) {
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
@@ -30,8 +32,16 @@ bool init(SDL_Window*& window, SDL_Renderer*& renderer) {
 	}
 	return true;
 }
-SDL_Texture* loadTexture(const char* name, SDL_Renderer* renderer) {
+SDL_Texture* loadTexture(const char* name, SDL_Renderer* renderer,
+	bool transparent, SDL_Color cutColor) {
+
+	// папка + имя файла
+	
+
 	SDL_Surface* surface = IMG_Load(name);
+	if(transparent)
+		SDL_SetColorKey(surface, SDL_TRUE, SDL_MapRGB(surface->format, cutColor.r, cutColor.g, cutColor.b));
+
 	if (!surface) {
 		cout << "Ошибка загрузки изображения: " << IMG_GetError() << endl;
 	}
@@ -59,22 +69,9 @@ Mix_Music* loadMusic(const char* name) {
 	}
 	return music;
 }
-SDL_Texture* renderText(const char* message, TTF_Font* font, SDL_Color color, SDL_Renderer* renderer) {
-	SDL_Surface* surface = TTF_RenderUTF8_Blended(font, message, color);
-	if (!surface) {
-		cout << "Ошибка создания текстовой поверхности: " << TTF_GetError() << endl;
-	}
-	SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
-	SDL_FreeSurface(surface);
-	if (!texture) {
-		cout << "Ошибка создания текстовой текстуры: " << SDL_GetError() << endl;
-	}
-	return texture;
-}
+
 bool isButtonClicked(const SDL_Rect& rect, const SDL_Event& event) {
-	if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
-		int x = event.button.x;
-		int y = event.button.y;
-		return x >= rect.x && x <= rect.x + rect.w && y >= rect.y && y <= rect.y + rect.h;
-	}
+	int x = event.button.x;
+	int y = event.button.y;
+	return x >= rect.x && x <= rect.x + rect.w && y >= rect.y && y <= rect.y + rect.h;
 }

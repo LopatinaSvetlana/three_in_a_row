@@ -13,6 +13,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Исходные файлы\главные переменные">
+      <UniqueIdentifier>{829c635a-2b01-4c97-9b1c-1b0436a35ba7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\основное с SDL">
+      <UniqueIdentifier>{b76a5f86-5768-410c-8897-bf7c3bbf77c0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -21,13 +27,19 @@
     <ClCompile Include="main.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
+    <ClCompile Include="vars.cpp">
+      <Filter>Исходные файлы\главные переменные</Filter>
+    </ClCompile>
     <ClCompile Include="base.cpp">
-      <Filter>Исходные файлы</Filter>
+      <Filter>Исходные файлы\основное с SDL</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="common_vars.h">
+      <Filter>Исходные файлы\главные переменные</Filter>
+    </ClInclude>
     <ClInclude Include="base.h">
-      <Filter>Файлы заголовков</Filter>
+      <Filter>Исходные файлы\основное с SDL</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -132,9 +132,11 @@
   <ItemGroup>
     <ClCompile Include="base.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="vars.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="base.h" />
+    <ClInclude Include="common_vars.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
