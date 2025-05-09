@@ -24,7 +24,12 @@ void DrawText(SDL_Renderer* render, TTF_Font *font, const char *text, SDL_Color 
 		&textTransform); //передали трансформацию текста
 }
 
+void ButtonBackDraw(SDL_Texture *button_back, SDL_Rect button_back_cord) {
+	SDL_RenderCopy(renderer, button_back, NULL, &button_back_cord);
 
+	if (isButtonClicked(button_back_cord, event))
+		condition = 0;
+}
 int main(int argc, char* argv[]) {
 
 	if (!init(window, renderer))
@@ -63,28 +68,20 @@ int main(int argc, char* argv[]) {
 			switch (event.type) {
 			case SDL_QUIT:
 				quit = true;
-			case SDL_MOUSEBUTTONDOWN:
-				if (event.button.button = SDL_BUTTON_LEFT) {
-					if (isButtonClicked(button1_cord, event))
-						condition = 1;
-					if (isButtonClicked(button_back_cord, event))
-						condition = 0;
-					if (isButtonClicked(settings_card, event))
-						condition = 2;
-					/*if (isButtonClicked(level1_card, event))
-						condition = 3;
-					if (isButtonClicked(level2_card, event))
-						condition = 4;
-					if (isButtonClicked(level3_card, event))
-						condition = 5;*/
-				}
-
-
 			}
 
 
 			switch (condition) {
-			case 0:
+			case 0: //главное меню
+				if (event.type == SDL_MOUSEBUTTONDOWN) {
+					if (event.button.button = SDL_BUTTON_LEFT) {
+						if (isButtonClicked(button1_cord, event))
+							condition = 1; //-> выбор уровней
+						if (isButtonClicked(settings_card, event))
+							condition = 2;
+					}
+				}
+
 				FillBackground(renderer, 250, 165, 206, 0);
 				//191, 119, 167
 
@@ -92,44 +89,46 @@ int main(int argc, char* argv[]) {
 
 				SDL_RenderCopy(renderer, button1, NULL, &button1_cord); //рисуем кнопку и текст »√–ј“№
 				DrawText(renderer, font, "PLAY", { 255,255,255,0 }, SCREEN_WIDTH / 2 - 62, SCREEN_HEIGHT - 360, 100);
-
-
 				SDL_RenderCopy(renderer, logoType, NULL, &logoTransform);
-
 				SDL_RenderCopy(renderer, settings_logo, NULL, &settings_card);
-
-
-
-
-
 				break;
 
 
-			case 1:
+			case 1: //выбор уровней
 				FillBackground(renderer, 250, 165, 206, 0);
 				SDL_RenderCopy(renderer, button_back, NULL, &button_back_cord);
 				SDL_RenderCopy(renderer, level1, NULL, &level1_card);
 				SDL_RenderCopy(renderer, level2, NULL, &level2_card);
 				SDL_RenderCopy(renderer, level3, NULL, &level3_card);
-				/*if (isButtonClicked(level1_card, event))
+				if (event.button.button = SDL_BUTTON_LEFT && event.type == SDL_MOUSEBUTTONDOWN) {
+					if (isButtonClicked(level1_card, event))
 						condition = 3;
 					if (isButtonClicked(level2_card, event))
 						condition = 4;
 					if (isButtonClicked(level3_card, event))
-						condition = 5;*/
+						condition = 5;
+					
+				}
 				break;
-			case 2:
+			case 2://настройки
 				FillBackground(renderer, 250, 165, 206, 0);
 				SDL_RenderCopy(renderer, button_back, NULL, &button_back_cord);
+
+				if (event.type == SDL_MOUSEBUTTONDOWN) {
+					if (event.button.button = SDL_BUTTON_LEFT) {
+						if (isButtonClicked(button_back_cord, event))
+							condition = 0;
+					}
+				}
 				break;
 			case 3:
-				FillBackground(renderer, 250, 165, 206, 0);
+				FillBackground(renderer, 250, 250, 255, 0);
 				break;
 			case 4:
-				FillBackground(renderer, 250, 165, 206, 0);
+				FillBackground(renderer, 250, 0, 250, 0);
 				break;
 			case 5:
-				FillBackground(renderer, 250, 165, 206, 0);
+				FillBackground(renderer, 250, 250, 0, 0);
 				break;
 			}
 		}
