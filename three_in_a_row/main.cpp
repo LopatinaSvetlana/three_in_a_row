@@ -38,19 +38,28 @@ int main(int argc, char* argv[]) {
 	TTF_Init(); //
 	TTF_Font* font = TTF_OpenFont("font.ttf", 100);
 
-	SDL_Texture* logoType = loadTexture("logotype.bmp", renderer, true, {7,255,7,0});
+	SDL_Texture* logoType = loadTexture("logotype.bmp", renderer, true, { 7,255,7,0 });
 	SDL_Rect logoTransform = { SCREEN_WIDTH / 2 - 550, SCREEN_HEIGHT - 700, 1200, 350 };
 
 	SDL_Texture* button1 = loadTexture("button1.bmp", renderer);
 	SDL_Rect button1_cord = { SCREEN_WIDTH / 2 - 125, SCREEN_HEIGHT - 350, 250, 90 };
 
-	SDL_Texture* button_back = loadTexture("back.bmp", renderer, true, {7,255,7,0});
-	SDL_Rect button_back_cord = {20,20,100,100};
+	SDL_Texture* button_back = loadTexture("back.bmp", renderer, true, { 7,255,7,0 });
+	SDL_Rect button_back_cord = { 20,20,100,100 };
 
+	SDL_Texture* settings_logo = loadTexture("settingslogo.bmp", renderer);
+	SDL_Rect settings_card = { SCREEN_WIDTH - 120,SCREEN_HEIGHT - 120,90,90 };
+
+	SDL_Texture* level1 = loadTexture("level1.bmp", renderer);
+	SDL_Texture* level2 = loadTexture("level2.bmp", renderer);
+	SDL_Texture* level3 = loadTexture("level3.bmp", renderer);
+	SDL_Rect level1_card = { SCREEN_WIDTH / 2 - 200,SCREEN_HEIGHT - 550,400,150 };
+	SDL_Rect level2_card = { SCREEN_WIDTH / 2 - 200,SCREEN_HEIGHT - 380,400,150 };
+	SDL_Rect level3_card = { SCREEN_WIDTH / 2 - 200,SCREEN_HEIGHT - 210,400,150 };
 
 	while (!quit) {
 		while (SDL_PollEvent(&event)) {
-			
+
 			switch (event.type) {
 			case SDL_QUIT:
 				quit = true;
@@ -60,18 +69,25 @@ int main(int argc, char* argv[]) {
 						condition = 1;
 					if (isButtonClicked(button_back_cord, event))
 						condition = 0;
-
+					if (isButtonClicked(settings_card, event))
+						condition = 2;
+					/*if (isButtonClicked(level1_card, event))
+						condition = 3;
+					if (isButtonClicked(level2_card, event))
+						condition = 4;
+					if (isButtonClicked(level3_card, event))
+						condition = 5;*/
 				}
 
-		
+
 			}
 
 
 			switch (condition) {
 			case 0:
-				FillBackground(renderer, 191, 119, 167, 0);
+				FillBackground(renderer, 250, 165, 206, 0);
+				//191, 119, 167
 
-				
 				SDL_RenderCopy(renderer, logoType, NULL, &logoTransform); //рисуем лого
 
 				SDL_RenderCopy(renderer, button1, NULL, &button1_cord); //рисуем кнопку и текст »√–ј“№
@@ -80,7 +96,9 @@ int main(int argc, char* argv[]) {
 
 				SDL_RenderCopy(renderer, logoType, NULL, &logoTransform);
 
-				
+				SDL_RenderCopy(renderer, settings_logo, NULL, &settings_card);
+
+
 
 
 
@@ -88,14 +106,36 @@ int main(int argc, char* argv[]) {
 
 
 			case 1:
-				FillBackground(renderer, 10, 119, 167, 0);
+				FillBackground(renderer, 250, 165, 206, 0);
 				SDL_RenderCopy(renderer, button_back, NULL, &button_back_cord);
+				SDL_RenderCopy(renderer, level1, NULL, &level1_card);
+				SDL_RenderCopy(renderer, level2, NULL, &level2_card);
+				SDL_RenderCopy(renderer, level3, NULL, &level3_card);
+				/*if (isButtonClicked(level1_card, event))
+						condition = 3;
+					if (isButtonClicked(level2_card, event))
+						condition = 4;
+					if (isButtonClicked(level3_card, event))
+						condition = 5;*/
+				break;
+			case 2:
+				FillBackground(renderer, 250, 165, 206, 0);
+				SDL_RenderCopy(renderer, button_back, NULL, &button_back_cord);
+				break;
+			case 3:
+				FillBackground(renderer, 250, 165, 206, 0);
+				break;
+			case 4:
+				FillBackground(renderer, 250, 165, 206, 0);
+				break;
+			case 5:
+				FillBackground(renderer, 250, 165, 206, 0);
 				break;
 			}
 		}
 		SDL_RenderPresent(renderer);
 	}
-	
+
 	Mix_CloseAudio(); //закрыли проигрыватель
 
 	SDL_DestroyRenderer(renderer);
