@@ -106,7 +106,7 @@ int main(int argc, char* argv[]) {
 				if (isButtonClicked(level2_card, event))
 						condition = 4;
 				if (isButtonClicked(level3_card, event))
-						condition = 5;*/
+						condition = 5;
 				break;
 			case 2://настройки
 				FillBackground(renderer, 250, 165, 206, 0);
