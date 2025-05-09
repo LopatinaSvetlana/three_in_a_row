@@ -49,7 +49,7 @@ int main(int argc, char* argv[]) {
 	SDL_Texture* button1 = loadTexture("button1.bmp", renderer);
 	SDL_Rect button1_cord = { SCREEN_WIDTH / 2 - 125, SCREEN_HEIGHT - 350, 250, 90 };
 
-	SDL_Texture* button_back = loadTexture("back.bmp", renderer, true, { 7,255,7,0 });
+	SDL_Texture* button_back = loadTexture("back.bmp", renderer, true, { 7,255,7,0});
 	SDL_Rect button_back_cord = { 20,20,100,100 };
 
 	SDL_Texture* settings_logo = loadTexture("settingslogo.bmp", renderer);
@@ -103,12 +103,10 @@ int main(int argc, char* argv[]) {
 				if (event.button.button = SDL_BUTTON_LEFT && event.type == SDL_MOUSEBUTTONDOWN) {
 					if (isButtonClicked(level1_card, event))
 						condition = 3;
-					if (isButtonClicked(level2_card, event))
+				if (isButtonClicked(level2_card, event))
 						condition = 4;
-					if (isButtonClicked(level3_card, event))
-						condition = 5;
-					
-				}
+				if (isButtonClicked(level3_card, event))
+						condition = 5;*/
 				break;
 			case 2://настройки
 				FillBackground(renderer, 250, 165, 206, 0);
