@@ -8,7 +8,7 @@
 
 #define SCREEN_WIDTH 1200
 #define SCREEN_HEIGHT 720
-
+#define ELEM_SIZE 90
 
 extern int condition;
 

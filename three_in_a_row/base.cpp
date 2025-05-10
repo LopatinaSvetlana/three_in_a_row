@@ -6,6 +6,8 @@
 #include<SDL_image.h>
 #include "SDL_mixer.h"
 #include "common_vars.h"
+#include "SDL_image.h"
+
 using namespace std;
 void FillBackground(SDL_Renderer* rend, int colorR, int colorG, int colorB, int colorA) {
 	SDL_SetRenderDrawColor(rend, colorR, colorG, colorB, colorA);
@@ -23,25 +25,23 @@ bool init(SDL_Window*& window, SDL_Renderer*& renderer) {
 		SDL_Quit();
 		return false;
 	}
-	renderer = SDL_CreateRenderer(window, -1, 0);
+	renderer = SDL_CreateRenderer(window, -1, 
+		SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 	if (!renderer) {
 		cout << "ошибка: " << SDL_GetError() << endl;
 		SDL_DestroyWindow(window);
 		SDL_Quit();
 		return false;
 	}
+	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 	return true;
 }
-SDL_Texture* loadTexture(const char* name, SDL_Renderer* renderer,
-	bool transparent, SDL_Color cutColor) {
+SDL_Texture* loadTexture(const char* name, SDL_Renderer* renderer) {
 
-	// папка + имя файла
-	
 
 	SDL_Surface* surface = IMG_Load(name);
-	if(transparent)
-		SDL_SetColorKey(surface, SDL_TRUE, SDL_MapRGB(surface->format, cutColor.r, cutColor.g, cutColor.b));
-
+	SDL_SetSurfaceBlendMode(surface, SDL_BLENDMODE_BLEND);
+	
 	if (!surface) {
 		cout << "Ошибка загрузки изображения: " << IMG_GetError() << endl;
 	}
