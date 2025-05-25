@@ -16,6 +16,7 @@ struct elem {
     int element = 0;
 };
 
+
 void DrawText(SDL_Renderer* render, TTF_Font* font, const char* text, SDL_Color color,
     int xPos, int yPos, int Scale) {
     SDL_Surface* surface = TTF_RenderText_Solid(font, text, color);
@@ -26,9 +27,9 @@ void DrawText(SDL_Renderer* render, TTF_Font* font, const char* text, SDL_Color 
     SDL_FreeSurface(surface);
 }
 
-void ButtonBackDraw(SDL_Texture* button_back, SDL_Rect button_back_cord, int targetCondition = 0) {
+void ButtonBackDraw(SDL_Texture* button_back, SDL_Rect button_back_cord, int targetCondition = 0, Mix_Chunk *click = nullptr) {
     SDL_RenderCopy(renderer, button_back, NULL, &button_back_cord);
-    if (isButtonClicked(button_back_cord, event) && event.type == SDL_MOUSEBUTTONDOWN)
+    if (event.type == SDL_MOUSEBUTTONDOWN && isButtonClicked(button_back_cord, event, click))
         condition = targetCondition;
 }
 
@@ -177,12 +178,18 @@ bool HasMatch(elem* field, int scale) {
 }
 
 void DrawDynamicUI(SDL_Renderer* renderer, TTF_Font* font, int remainingMoves, int Score) {
-    DrawText(renderer, font, "REMAINING MOVES: ", { 255,255,255,0 }, 20, SCREEN_HEIGHT / 2 - 200, 50);
-    DrawText(renderer, font, to_string(remainingMoves).c_str(), { 255,255,255,0 }, 20, SCREEN_HEIGHT / 2 + 200, 50);
+    DrawText(renderer, font, "REMAINING MOVES: ", { 255,255,255,0 }, 20, SCREEN_HEIGHT / 2 - 150, 50);
+    DrawText(renderer, font, to_string(remainingMoves).c_str(), { 255,255,255,0 }, 
+        20, SCREEN_HEIGHT / 2 - 100, 50);
+
+    DrawText(renderer, font, "SCORE: ", { 255, 238, 205,0 }, 20, SCREEN_HEIGHT / 2 - 20, 50);
+    DrawText(renderer, font, to_string(Score).c_str(), { 255, 238, 205,0 },
+        20, SCREEN_HEIGHT / 2, 100); 
 }
 
 void RunLevel(SDL_Renderer* renderer, int amount_figure, int scale, SDL_Texture* gridImg, SDL_Texture** elems,
-    SDL_Texture* selectedImg, SDL_Event event, TTF_Font* font, SDL_Texture* button_back, int maxMoves, int maxScore) {
+    SDL_Texture* selectedImg, SDL_Event event, TTF_Font* font, SDL_Texture* button_back, int maxMoves, int maxScore, 
+    Mix_Chunk *button_click) {
     int gridScale = 70;
     elem* field = (elem*)malloc(scale * scale * sizeof(elem));
     SDL_Rect selectedElem = { 0,0,0,0 };
@@ -234,7 +241,7 @@ void RunLevel(SDL_Renderer* renderer, int amount_figure, int scale, SDL_Texture*
                                         // Рендерим поле с пустыми клетками
                                         SDL_RenderClear(renderer);
                                         FillBackground(renderer, 191, 149, 190, 0);
-                                        ButtonBackDraw(button_back, button_back_cord, 1);
+                                        ButtonBackDraw(button_back, button_back_cord, 1, button_click);
                                         //обнови счёт!
                                         DrawDynamicUI(renderer, font, remainingMoves, localScore);
 
@@ -262,7 +269,7 @@ void RunLevel(SDL_Renderer* renderer, int amount_figure, int scale, SDL_Texture*
                                             // Рендерим после удаления
                                             SDL_RenderClear(renderer);
                                             FillBackground(renderer, 191, 149, 190, 0);
-                                            ButtonBackDraw(button_back, button_back_cord, 1);
+                                            ButtonBackDraw(button_back, button_back_cord, 1, button_click);
                                             DrawDynamicUI(renderer, font, remainingMoves, localScore);
 
                                             for (int ii = 0; ii < scale; ii++) {
@@ -286,7 +293,7 @@ void RunLevel(SDL_Renderer* renderer, int amount_figure, int scale, SDL_Texture*
                                         remainingMoves--;
                                         SDL_RenderClear(renderer);
                                         FillBackground(renderer, 191, 149, 190, 0);
-                                        ButtonBackDraw(button_back, button_back_cord, 1);
+                                        ButtonBackDraw(button_back, button_back_cord, 1, button_click);
                                         DrawDynamicUI(renderer, font, remainingMoves, localScore);
 
                                         for (int ii = 0; ii < scale; ii++) {
@@ -350,6 +357,15 @@ int main(int argc, char* argv[]) {
     SDL_Texture* level1 = loadTexture("level1.bmp", renderer);
     SDL_Texture* level2 = loadTexture("level2.bmp", renderer);
     SDL_Texture* level3 = loadTexture("level3.bmp", renderer);
+    //
+    Mix_Chunk* streak_huge_sound = Mix_LoadWAV("big_streak.wav");
+    Mix_Chunk* button_click_sound = Mix_LoadWAV("button_touch.wav");
+    Mix_Chunk* cell_select_sound = Mix_LoadWAV("cell_select.wav");
+    Mix_Chunk* default_select_sound = Mix_LoadWAV("default_streak.wav");
+    Mix_Chunk* game_failed_sound = Mix_LoadWAV("game_failed_turn.wav");
+    Mix_Chunk* game_lose_sound = Mix_LoadWAV("game_lose.wav");
+    Mix_Chunk* game_win_sound = Mix_LoadWAV("game_win.wav");
+    Mix_Chunk* game_start_sound = Mix_LoadWAV("level_start.wav");
 
     SDL_Texture* elems[5] = {
         loadTexture("krug.png", renderer),
@@ -379,9 +395,9 @@ int main(int argc, char* argv[]) {
             switch (condition) {
             case 0:
                 if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
-                    if (isButtonClicked(button1_cord, event))
+                    if (isButtonClicked(button1_cord, event, button_click_sound))
                         condition = 1;
-                    if (isButtonClicked(settings_card, event))
+                    if (isButtonClicked(settings_card, event, button_click_sound))
                         condition = 2;
                 }
 
@@ -394,37 +410,53 @@ int main(int argc, char* argv[]) {
 
             case 1:
                 FillBackground(renderer, 250, 165, 206, 0);
-                ButtonBackDraw(button_back, button_back_cord);
+                ButtonBackDraw(button_back, button_back_cord, 0, button_click_sound);
                 SDL_RenderCopy(renderer, level1, NULL, &level1_card);
                 SDL_RenderCopy(renderer, level2, NULL, &level2_card);
                 SDL_RenderCopy(renderer, level3, NULL, &level3_card);
 
                 if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
-                    if (isButtonClicked(level1_card, event)) condition = 3;
-                    if (isButtonClicked(level2_card, event)) condition = 4;
-                    if (isButtonClicked(level3_card, event)) condition = 5;
+                    if (isButtonClicked(level1_card, event, game_start_sound)) condition = 3;
+                    if (isButtonClicked(level2_card, event, game_start_sound)) condition = 4;
+                    if (isButtonClicked(level3_card, event, game_start_sound)) condition = 5;
                 }
                 break;
 
             case 2:
                 FillBackground(renderer, 250, 165, 206, 0);
-                ButtonBackDraw(button_back, button_back_cord);
+                ButtonBackDraw(button_back, button_back_cord, 0, button_click_sound);
                 break;
 
             case 3:
-                RunLevel(renderer, 3, 8, gridImg, elems, selectedImg, event, font, button_back, 20, 100);
+                RunLevel(renderer, 3, 8, gridImg, elems, selectedImg, event, font, button_back, 20, 100, button_click_sound);
                 break;
             case 4:
-                RunLevel(renderer, 4, 8, gridImg, elems, selectedImg, event, font, button_back, 30, 200);
+                RunLevel(renderer, 4, 8, gridImg, elems, selectedImg, event, font, button_back, 30, 200, button_click_sound);
                 break;
             case 5:
-                RunLevel(renderer, 5, 10, gridImg, elems, selectedImg, event, font, button_back, 40, 500);
+                RunLevel(renderer, 5, 10, gridImg, elems, selectedImg, event, font, button_back, 40, 500, button_click_sound);
                 break;
             }
             SDL_RenderPresent(renderer);
         }
     }
 
+    SDL_DestroyTexture(logoType);
+    SDL_DestroyTexture(button1);
+    SDL_DestroyTexture(button_back);
+    SDL_DestroyTexture(settings_logo);
+    SDL_DestroyTexture(level1);
+    SDL_DestroyTexture(level2);
+    SDL_DestroyTexture(level3);
+
+    Mix_FreeChunk(streak_huge_sound);
+    Mix_FreeChunk(button_click_sound);
+    Mix_FreeChunk(cell_select_sound);
+    Mix_FreeChunk(default_select_sound);
+    Mix_FreeChunk(game_failed_sound);
+    Mix_FreeChunk(game_lose_sound);
+    Mix_FreeChunk(game_win_sound);
+    Mix_FreeChunk(game_start_sound);
     Mix_CloseAudio();
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);

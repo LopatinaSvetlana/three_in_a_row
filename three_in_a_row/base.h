@@ -15,4 +15,4 @@ SDL_Texture* loadTexture(const char* name, SDL_Renderer* renderer);
 Mix_Chunk* loadSound(const char* name);
 Mix_Music* loadMusic(const char* name);
 
-bool isButtonClicked(const SDL_Rect& rect, const SDL_Event& event);
+bool isButtonClicked(const SDL_Rect& rect, const SDL_Event& event, Mix_Chunk* touchSound = nullptr);

@@ -70,8 +70,11 @@ Mix_Music* loadMusic(const char* name) {
 	return music;
 }
 
-bool isButtonClicked(const SDL_Rect& rect, const SDL_Event& event) {
+bool isButtonClicked(const SDL_Rect& rect, const SDL_Event& event, Mix_Chunk* touchSound) {
 	int x = event.button.x;
 	int y = event.button.y;
-	return x >= rect.x && x <= rect.x + rect.w && y >= rect.y && y <= rect.y + rect.h;
+	bool check = x >= rect.x && x <= rect.x + rect.w && y >= rect.y && y <= rect.y + rect.h;
+	if (check)
+		Mix_PlayChannel(0,touchSound,0);
+	return check;
 }
