@@ -16,12 +16,14 @@ struct elem {
     int element = 0;
 };
 
+int currentLevel = 0;
+
 
 void DrawText(SDL_Renderer* render, TTF_Font* font, const char* text, SDL_Color color,
     int xPos, int yPos, int Scale) {
     SDL_Surface* surface = TTF_RenderText_Solid(font, text, color);
     SDL_Texture* texture = SDL_CreateTextureFromSurface(render, surface);
-    SDL_Rect textTransform = { xPos, yPos, static_cast<int>(Scale * strlen(text) * 0.3), Scale };
+    SDL_Rect textTransform = { xPos, yPos, (int)(Scale * strlen(text) * 0.3), Scale };
     SDL_RenderCopy(render, texture, NULL, &textTransform);
     SDL_DestroyTexture(texture);
     SDL_FreeSurface(surface);
@@ -111,6 +113,8 @@ int RemoveMatches(elem* field, int scale) {
         }
     }
 
+    cout << removedCount << endl;
+
     return removedCount;
 }
 
@@ -188,8 +192,8 @@ void DrawDynamicUI(SDL_Renderer* renderer, TTF_Font* font, int remainingMoves, i
 }
 
 void RunLevel(SDL_Renderer* renderer, int amount_figure, int scale, SDL_Texture* gridImg, SDL_Texture** elems,
-    SDL_Texture* selectedImg, SDL_Event event, TTF_Font* font, SDL_Texture* button_back, int maxMoves, int maxScore, 
-    Mix_Chunk *button_click) {
+    SDL_Texture* selectedImg, SDL_Event event, TTF_Font* font, SDL_Texture* button_back, int maxMoves, int maxScore) {
+    currentLevel = condition;
     int gridScale = 70;
     elem* field = (elem*)malloc(scale * scale * sizeof(elem));
     SDL_Rect selectedElem = { 0,0,0,0 };
@@ -210,7 +214,7 @@ void RunLevel(SDL_Renderer* renderer, int amount_figure, int scale, SDL_Texture*
                 running = false;
                 break;
             }
-            if (event.type == SDL_MOUSEBUTTONDOWN && isButtonClicked(button_back_cord, event)) {
+            if (event.type == SDL_MOUSEBUTTONDOWN && isButtonClicked(button_back_cord, event, sounds[1])) {
                 condition = 1;
                 running = false;
                 break;
@@ -222,6 +226,7 @@ void RunLevel(SDL_Renderer* renderer, int amount_figure, int scale, SDL_Texture*
                         elem* curElem = &field[i * scale + j];
                         if (isButtonClicked(curElem->transPos, event)) {
                             if (!isSelectedExist) {
+                                Mix_PlayChannel(1, sounds[2], 0);
                                 selectedElem = curElem->transPos;
                                 selectedIndex = i * scale + j;
                                 isSelectedExist = true;
@@ -235,13 +240,45 @@ void RunLevel(SDL_Renderer* renderer, int amount_figure, int scale, SDL_Texture*
                                     int secondIndex = i * scale + j;
                                     swap(field[selectedIndex].element, field[secondIndex].element);
 
+                                    
+                                   
+
+                                    SDL_RenderPresent(renderer);
                                     if (HasMatch(field, scale)) { //если ход выдал три в р€д
-                                        RemoveMatches(field, scale);
+                                        Mix_PlayChannel(1, sounds[4], 0);
+                                        SDL_RenderClear(renderer);
+                                        FillBackground(renderer, 191, 149, 190, 0);
+                                        ButtonBackDraw(button_back, button_back_cord, 1);
+                                        DrawDynamicUI(renderer, font, remainingMoves, localScore);
+
+                                        for (int ii = 0; ii < scale; ii++) {
+                                            for (int jj = 0; jj < scale; jj++) {
+                                                elem* e = &field[ii * scale + jj];
+                                                SDL_RenderCopy(renderer, gridImg, NULL, &e->transPos);
+                                                if (e->element != -1)
+                                                    SDL_RenderCopy(renderer, elems[e->element], NULL, &e->transPos);
+                                            }
+                                        }
+                                        SDL_RenderPresent(renderer);
+                                        SDL_Delay(500);
+
+                                        int cntRemoved = RemoveMatches(field, scale);
+                                        if (cntRemoved <= 3) { 
+                                            localScore += 10; 
+                                            Mix_PlayChannel(0, sounds[3], 0); }
+                                        if (cntRemoved == 4) { 
+                                            localScore += 20;
+                                            Mix_PlayChannel(0, sounds[3], 0);}
+                                        if (cntRemoved > 4) { 
+                                            localScore += 30; 
+                                            Mix_PlayChannel(0, sounds[0], 0);
+                                        }
+                                        
                                         remainingMoves--;
                                         // –ендерим поле с пустыми клетками
                                         SDL_RenderClear(renderer);
                                         FillBackground(renderer, 191, 149, 190, 0);
-                                        ButtonBackDraw(button_back, button_back_cord, 1, button_click);
+                                        ButtonBackDraw(button_back, button_back_cord, 1);
                                         //обнови счЄт!
                                         DrawDynamicUI(renderer, font, remainingMoves, localScore);
 
@@ -263,13 +300,35 @@ void RunLevel(SDL_Renderer* renderer, int amount_figure, int scale, SDL_Texture*
                                         GenerateNewElements(field, scale, amount_figure);
                                         // ÷епна€ реакци€ Ч убираем новые совпадени€ после генерации
                                         while (HasMatch(field, scale)) {
-                                            SDL_Delay(300);
-                                            RemoveMatches(field, scale);
+                                            for (int ii = 0; ii < scale; ii++) {
+                                                for (int jj = 0; jj < scale; jj++) {
+                                                    elem* e = &field[ii * scale + jj];
+                                                    SDL_RenderCopy(renderer, gridImg, NULL, &e->transPos);
+                                                    if (e->element != -1)
+                                                        SDL_RenderCopy(renderer, elems[e->element], NULL, &e->transPos);
+                                                }
+                                            }
+
+                                            SDL_Delay(500);
+                                            cntRemoved = RemoveMatches(field, scale);
+
+                                            if (cntRemoved <= 3) {
+                                                localScore += 10;
+                                                Mix_PlayChannel(0, sounds[3], 0);
+                                            }
+                                            if (cntRemoved == 4) {
+                                                localScore += 20;
+                                                Mix_PlayChannel(0, sounds[3], 0);
+                                            }
+                                            if (cntRemoved > 4) {
+                                                localScore += 30;
+                                                Mix_PlayChannel(0, sounds[0], 0);
+                                            }
 
                                             // –ендерим после удалени€
                                             SDL_RenderClear(renderer);
                                             FillBackground(renderer, 191, 149, 190, 0);
-                                            ButtonBackDraw(button_back, button_back_cord, 1, button_click);
+                                            ButtonBackDraw(button_back, button_back_cord, 1);
                                             DrawDynamicUI(renderer, font, remainingMoves, localScore);
 
                                             for (int ii = 0; ii < scale; ii++) {
@@ -287,13 +346,15 @@ void RunLevel(SDL_Renderer* renderer, int amount_figure, int scale, SDL_Texture*
                                             GenerateNewElements(field, scale, amount_figure);
                                         }
 
+                                       
+
 
                                     }
                                     else {
                                         remainingMoves--;
                                         SDL_RenderClear(renderer);
                                         FillBackground(renderer, 191, 149, 190, 0);
-                                        ButtonBackDraw(button_back, button_back_cord, 1, button_click);
+                                        ButtonBackDraw(button_back, button_back_cord, 1);
                                         DrawDynamicUI(renderer, font, remainingMoves, localScore);
 
                                         for (int ii = 0; ii < scale; ii++) {
@@ -305,7 +366,9 @@ void RunLevel(SDL_Renderer* renderer, int amount_figure, int scale, SDL_Texture*
                                             }
                                         }
                                         SDL_RenderPresent(renderer);
+                                        Mix_PlayChannel(1, sounds[4], 0);
                                         SDL_Delay(500);
+                                        Mix_PlayChannel(1, sounds[4], 0);
                                         swap(field[selectedIndex].element, field[secondIndex].element);
                                     }
                                 }
@@ -316,6 +379,17 @@ void RunLevel(SDL_Renderer* renderer, int amount_figure, int scale, SDL_Texture*
                         }
                     }
                 }
+            }
+
+            if (localScore >= maxScore) {
+                condition = 6;
+                running = false;
+                break;
+            }
+            if (remainingMoves<=0) {
+                condition = 7;
+                running = false;
+                break;
             }
         }
 
@@ -340,7 +414,11 @@ void RunLevel(SDL_Renderer* renderer, int amount_figure, int scale, SDL_Texture*
     free(field);
 }
 
+
+
 int main(int argc, char* argv[]) {
+
+
     if (!init(window, renderer))
         return 1;
 
@@ -359,14 +437,33 @@ int main(int argc, char* argv[]) {
     SDL_Texture* level2 = loadTexture("level2.bmp", renderer);
     SDL_Texture* level3 = loadTexture("level3.bmp", renderer);
     //
-    Mix_Chunk* streak_huge_sound = Mix_LoadWAV("big_streak.wav");
-    Mix_Chunk* button_click_sound = Mix_LoadWAV("button_touch.wav");
-    Mix_Chunk* cell_select_sound = Mix_LoadWAV("cell_select.wav");
-    Mix_Chunk* default_select_sound = Mix_LoadWAV("default_streak.wav");
-    Mix_Chunk* game_failed_sound = Mix_LoadWAV("game_failed_turn.wav");
-    Mix_Chunk* game_lose_sound = Mix_LoadWAV("game_lose.wav");
-    Mix_Chunk* game_win_sound = Mix_LoadWAV("game_win.wav");
-    Mix_Chunk* game_start_sound = Mix_LoadWAV("level_start.wav");
+   
+
+    const char* sounds_to_load[] = {
+       /*0*/ "big_streak.wav",
+       /*1*/ "button_touch.wav",
+       /*2*/ "cell_select.wav",
+       /*3*/ "defalut_streak.wav",
+       /*4*/ "game_failed_turn.wav",
+       /*5*/ "game_lose.wav",
+       /*6*/ "game_win.wav",
+       /*7*/ "level_start.wav"
+    };
+    int soundsCount = sizeof(sounds_to_load) / sizeof(sounds_to_load[0]);
+    sounds = (Mix_Chunk**)malloc(soundsCount * sizeof(Mix_Chunk*));
+    
+    for (int i = 0; i < soundsCount; i++) {
+        Mix_Chunk* sound = Mix_LoadWAV(sounds_to_load[i]);
+        if (!sound) {
+            cout << "ќшибка загрузки звука: " << Mix_GetError() << endl;
+        }
+        sounds[i] = sound;
+    }
+
+
+    
+
+
 
     SDL_Texture* elems[5] = {
         loadTexture("krug.png", renderer),
@@ -380,13 +477,16 @@ int main(int argc, char* argv[]) {
     SDL_Texture* gridImg = loadTexture("back.png", renderer);
 
     SDL_Rect button1_cord = { SCREEN_WIDTH / 2 - 125, SCREEN_HEIGHT - 350, 250, 90 };
+    SDL_Rect button2_cord = { SCREEN_WIDTH / 2 - 125, SCREEN_HEIGHT - 350 + 100, 250, 90 }; //кнопка2 ниже кнопки1 на 100 единиц
+
+
     SDL_Rect logoTransform = { SCREEN_WIDTH / 2 - 550, SCREEN_HEIGHT - 700, 1200, 350 };
     SDL_Rect settings_card = { SCREEN_WIDTH - 120, SCREEN_HEIGHT - 120, 90, 90 };
     SDL_Rect level1_card = { SCREEN_WIDTH / 2 - 200, SCREEN_HEIGHT - 550, 400, 150 };
     SDL_Rect level2_card = { SCREEN_WIDTH / 2 - 200, SCREEN_HEIGHT - 380, 400, 150 };
     SDL_Rect level3_card = { SCREEN_WIDTH / 2 - 200, SCREEN_HEIGHT - 210, 400, 150 };
     SDL_Rect button_back_cord = { 20, 20, 100, 100 };
-
+    bool singleSound = false;
     bool quit = false;
     while (quit==false && condition !=-1) {
         while (SDL_PollEvent(&event)) {
@@ -396,9 +496,10 @@ int main(int argc, char* argv[]) {
             switch (condition) {
             case 0:
                 if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
-                    if (isButtonClicked(button1_cord, event, button_click_sound))
+                    
+                    if (isButtonClicked(button1_cord, event, sounds[1]))
                         condition = 1;
-                    if (isButtonClicked(settings_card, event, button_click_sound))
+                    if (isButtonClicked(settings_card, event, sounds[1]))
                         condition = 2;
                 }
 
@@ -410,34 +511,89 @@ int main(int argc, char* argv[]) {
                 break;
 
             case 1:
+               
                 FillBackground(renderer, 250, 165, 206, 0);
-                ButtonBackDraw(button_back, button_back_cord, 0, button_click_sound);
+                ButtonBackDraw(button_back, button_back_cord, 0, sounds[1]);
                 SDL_RenderCopy(renderer, level1, NULL, &level1_card);
                 SDL_RenderCopy(renderer, level2, NULL, &level2_card);
                 SDL_RenderCopy(renderer, level3, NULL, &level3_card);
 
                 if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
-                    if (isButtonClicked(level1_card, event, game_start_sound)) condition = 3;
-                    if (isButtonClicked(level2_card, event, game_start_sound)) condition = 4;
-                    if (isButtonClicked(level3_card, event, game_start_sound)) condition = 5;
+                    if (isButtonClicked(level1_card, event, sounds[7])) condition = 3;
+                    if (isButtonClicked(level2_card, event, sounds[7])) condition = 4;
+                    if (isButtonClicked(level3_card, event, sounds[7])) condition = 5;
                 }
                 break;
 
             case 2:
                 FillBackground(renderer, 250, 165, 206, 0);
-                ButtonBackDraw(button_back, button_back_cord, 0, button_click_sound);
+                ButtonBackDraw(button_back, button_back_cord, 0, sounds[1]);
                 break;
 
             case 3:
-                RunLevel(renderer, 3, 8, gridImg, elems, selectedImg, event, font, button_back, 20, 100, button_click_sound);
+                RunLevel(renderer, 3, 8, gridImg, elems, selectedImg, event, font, button_back, 2, 5);
+
                 break;
             case 4:
-                RunLevel(renderer, 4, 8, gridImg, elems, selectedImg, event, font, button_back, 30, 200, button_click_sound);
+                RunLevel(renderer, 4, 8, gridImg, elems, selectedImg, event, font, button_back, 30, 200);
                 break;
             case 5:
-                RunLevel(renderer, 5, 10, gridImg, elems, selectedImg, event, font, button_back, 40, 500, button_click_sound);
+                RunLevel(renderer, 5, 10, gridImg, elems, selectedImg, event, font, button_back, 40, 500);
+                break;
+            case 6:
+                FillBackground(renderer, 245, 185, 216, 0);
+                DrawText(renderer, font, "YOU WIN", { 255,255,255,0 }, SCREEN_WIDTH / 2 - 200, SCREEN_HEIGHT / 2 - 200, 200);
+                if (!singleSound) {
+                    Mix_PlayChannel(0, sounds[6], 0);
+                    singleSound = true;
+                }
+
+                SDL_RenderCopy(renderer, button1, NULL, &button1_cord);
+                SDL_RenderCopy(renderer, button1, NULL, &button2_cord);
+                DrawText(renderer, font, "BACK TO LEVELS", { 255,255,255,0 }, SCREEN_WIDTH / 2 - 80, SCREEN_HEIGHT - 330, 40);
+                DrawText(renderer, font, "REPLAY", { 255,255,255,0 }, SCREEN_WIDTH / 2 - 70, SCREEN_HEIGHT - 330 + 80, 80);
+
+                if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
+
+                    if (isButtonClicked(button1_cord, event, sounds[1])) {
+                        condition = 1;
+                        singleSound = false;
+                    }
+                    if (isButtonClicked(button2_cord, event, sounds[1])) {
+                        condition = currentLevel;
+                        singleSound = false;
+                    }
+                   
+                }
+                break;
+            case 7:
+                FillBackground(renderer, 0, 0, 0, 0);
+                DrawText(renderer, font, "GAMEOVER", { 255,0,0,0 }, SCREEN_WIDTH / 2 - 230, SCREEN_HEIGHT / 2 - 200, 200);
+                if (!singleSound) {
+                    Mix_PlayChannel(0, sounds[5], 0);
+                    singleSound = true;
+                }
+
+                SDL_RenderCopy(renderer, button1, NULL, &button1_cord);
+                SDL_RenderCopy(renderer, button1, NULL, &button2_cord);
+                DrawText(renderer, font, "BACK TO LEVELS", { 255,255,255,0 }, SCREEN_WIDTH / 2 - 80, SCREEN_HEIGHT - 330, 40);
+                DrawText(renderer, font, "REPLAY", { 255,255,255,0 }, SCREEN_WIDTH / 2 - 70, SCREEN_HEIGHT - 330 + 80, 80);
+
+                if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
+
+                    if (isButtonClicked(button1_cord, event, sounds[1])) {
+                        condition = 1;
+                        singleSound = false;
+                    }
+                    if (isButtonClicked(button2_cord, event, sounds[1])) {
+                        condition = currentLevel;
+                        singleSound = false;
+                    }
+
+                }
                 break;
             }
+
             SDL_RenderPresent(renderer);
         }
     }
@@ -449,15 +605,9 @@ int main(int argc, char* argv[]) {
     SDL_DestroyTexture(level1);
     SDL_DestroyTexture(level2);
     SDL_DestroyTexture(level3);
-
-    Mix_FreeChunk(streak_huge_sound);
-    Mix_FreeChunk(button_click_sound);
-    Mix_FreeChunk(cell_select_sound);
-    Mix_FreeChunk(default_select_sound);
-    Mix_FreeChunk(game_failed_sound);
-    Mix_FreeChunk(game_lose_sound);
-    Mix_FreeChunk(game_win_sound);
-    Mix_FreeChunk(game_start_sound);
+    
+    free(sounds);
+   
     Mix_CloseAudio();
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);

@@ -55,13 +55,7 @@ SDL_Texture* loadTexture(const char* name, SDL_Renderer* renderer) {
 
 	return texture;
 }
-Mix_Chunk* loadSound(const char* name) {
-	Mix_Chunk* sound = Mix_LoadWAV(name);
-	if (!sound) {
-		cout << "Ошибка загрузки звука: " << Mix_GetError() << endl;
-	}
-	return sound;
-}
+
 Mix_Music* loadMusic(const char* name) {
 	Mix_Music* music = Mix_LoadMUS(name);
 	if (!music) {
