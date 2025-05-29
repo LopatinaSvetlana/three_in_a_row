@@ -349,6 +349,7 @@ int main(int argc, char* argv[]) {
     IMG_Init(IMG_INIT_PNG);
     TTF_Init();
     TTF_Font* font = TTF_OpenFont("font.ttf", 100);
+    ///υσι
 
     SDL_Texture* logoType = loadTexture("logotype.png", renderer);
     SDL_Texture* button1 = loadTexture("button1.png", renderer);
