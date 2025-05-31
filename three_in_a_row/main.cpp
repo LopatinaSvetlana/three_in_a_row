@@ -17,7 +17,7 @@ struct elem {
 };
 
 int currentLevel = 0;
-
+int musicOn = 1;
 
 void DrawText(SDL_Renderer* render, TTF_Font* font, const char* text, SDL_Color color,
     int xPos, int yPos, int Scale) {
@@ -485,7 +485,7 @@ int main(int argc, char* argv[]) {
 
     SDL_Rect button1_cord = { SCREEN_WIDTH / 2 - 125, SCREEN_HEIGHT - 350, 250, 90 };
     SDL_Rect button2_cord = { SCREEN_WIDTH / 2 - 125, SCREEN_HEIGHT - 350 + 100, 250, 90 }; //кнопка2 ниже кнопки1 на 100 единиц
-
+    SDL_Rect button3_cord = { SCREEN_WIDTH / 2 - 125, SCREEN_HEIGHT - 400, 250, 90 };
 
     SDL_Rect logoTransform = { SCREEN_WIDTH / 2 - 550, SCREEN_HEIGHT - 700, 1200, 350 };
     SDL_Rect settings_card = { SCREEN_WIDTH - 120, SCREEN_HEIGHT - 120, 90, 90 };
@@ -504,8 +504,10 @@ int main(int argc, char* argv[]) {
             if (!music) {
                 cout << "Ошибка загрузки музыки: " << Mix_GetError() << endl;
             }
-            if (!Mix_PlayingMusic()) {
-                Mix_PlayMusic(music, -1);
+            if (musicOn == 1) {
+                if (!Mix_PlayingMusic()) {
+                    Mix_PlayMusic(music, -1);
+                }
             }
 
             switch (condition) {
@@ -543,6 +545,31 @@ int main(int argc, char* argv[]) {
             case 2:
                 FillBackground(renderer, 250, 165, 206, 0);
                 ButtonBackDraw(button_back, button_back_cord, 0, sounds[1]);
+                SDL_RenderCopy(renderer, button1, NULL, &button3_cord);
+                DrawText(renderer, font, "MUSIC: ", { 255,255,255,0 }, SCREEN_WIDTH / 2 - 80, SCREEN_HEIGHT - 480, 80);
+
+                if (musicOn == 1)
+                    DrawText(renderer, font, "OFF", { 255,255,255,0 }, SCREEN_WIDTH / 2 - 40, SCREEN_HEIGHT - 400, 80);
+                else
+                    DrawText(renderer, font, "ON", { 255,255,255,0 }, SCREEN_WIDTH / 2 - 40, SCREEN_HEIGHT - 400, 80);
+
+                if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
+                    if (isButtonClicked(button3_cord, event, sounds[1])) {
+                        if (musicOn == 1) {
+                            if (Mix_PlayingMusic()) {
+                                Mix_HaltMusic();
+                            }
+                            musicOn = 0;
+                        }
+                        else {
+                            if (!Mix_PlayingMusic()) {
+                                Mix_PlayMusic(music, -1);
+                            }
+                            musicOn = 1;
+                        }
+                        singleSound = false;
+                    }
+                }
                 break;
 
             case 3:
@@ -622,7 +649,7 @@ int main(int argc, char* argv[]) {
     SDL_DestroyTexture(level3);
     
     free(sounds);
-    Mix_FreeMusic(music);
+     Mix_FreeMusic(music);
    
     Mix_CloseAudio();
     SDL_DestroyRenderer(renderer);
