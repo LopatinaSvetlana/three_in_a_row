@@ -13,7 +13,7 @@
 extern int condition;
 
 extern Mix_Chunk** sounds;
-
+extern Mix_Music* music;
 
 extern SDL_Window* window;
 extern SDL_Renderer* renderer;

@@ -189,6 +189,13 @@ void DrawDynamicUI(SDL_Renderer* renderer, TTF_Font* font, int remainingMoves, i
     DrawText(renderer, font, "SCORE: ", { 255, 238, 205,0 }, 20, SCREEN_HEIGHT / 2 - 20, 50);
     DrawText(renderer, font, to_string(Score).c_str(), { 255, 238, 205,0 },
         20, SCREEN_HEIGHT / 2, 100); 
+
+    if (condition == 3)
+        DrawText(renderer, font, "GOAL: 100 ", { 255, 238, 205,0 }, 20, SCREEN_HEIGHT / 2 - 60, 50);
+    if (condition == 4)
+        DrawText(renderer, font, "GOAL: 200 ", { 255, 238, 205,0 }, 20, SCREEN_HEIGHT / 2 - 60, 50);
+    if (condition == 5)
+        DrawText(renderer, font, "GOAL: 500 ", { 255, 238, 205,0 }, 20, SCREEN_HEIGHT / 2 - 60, 50);
 }
 
 void RunLevel(SDL_Renderer* renderer, int amount_figure, int scale, SDL_Texture* gridImg, SDL_Texture** elems,
@@ -493,6 +500,14 @@ int main(int argc, char* argv[]) {
             if (event.type == SDL_QUIT)
                 quit = true;
 
+            Mix_Music* music = Mix_LoadMUS("musiccc.wav");
+            if (!music) {
+                cout << "Ошибка загрузки музыки: " << Mix_GetError() << endl;
+            }
+            if (!Mix_PlayingMusic()) {
+                Mix_PlayMusic(music, -1);
+            }
+
             switch (condition) {
             case 0:
                 if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
@@ -607,6 +622,7 @@ int main(int argc, char* argv[]) {
     SDL_DestroyTexture(level3);
     
     free(sounds);
+    Mix_FreeMusic(music);
    
     Mix_CloseAudio();
     SDL_DestroyRenderer(renderer);

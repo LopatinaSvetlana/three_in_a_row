@@ -8,3 +8,4 @@ SDL_Event event;
 int condition = 0;
 
 Mix_Chunk **sounds;
+Mix_Music* music;
